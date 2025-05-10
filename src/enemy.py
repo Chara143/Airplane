@@ -3,9 +3,10 @@ from .constants import DISPLAY_SIZE
 
 
 class Enemy(Entity):
-    def __init__(slef, image, coords, speed, damage):
+    def __init__(self, damage, image, coords, speed):
         super().__init__(image, coords, speed)
-        slef.damage = damage
+        self.damage = damage
+
     def update(self):
         self.move(0, self.speed)
         if self.rect.top >= DISPLAY_SIZE[1]:

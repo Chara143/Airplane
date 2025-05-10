@@ -6,4 +6,3 @@ class Bullet(Entity):
         self.move(0, -self.speed)
         if self.rect.bottom <= 0:
             self.kill()
-    

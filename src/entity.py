@@ -1,24 +1,24 @@
 import pygame
 
 
-class Entity():
-    def __init__(slef, image, coords, speed):
-        slef.image = image.copy()
-        slef.rect = slef.image.get_rect(center = coords)
-        slef.speed = speed
-        slef.mask = pygame.mask.from_surface(image)
-        slef.alive = True
+class Entity:
+    def __init__(self, image, coords, speed):
+        self.image = image.copy()
+        self.rect = self.image.get_rect(center=coords)
+        self.speed = speed
+        self.mask = pygame.mask.from_surface(self.image)
+        self.alive = True
 
-    def update(opilki):
+    def update(self):
         pass
 
-    def render(kraski, win):
-        win.blit(kraski.image, kraski.rect)
+    def render(self, screen):
+        screen.blit(self.image, self.rect)
 
     def kill(self):
         self.alive = False
 
-    def move(self, x ,y):
+    def move(self, x, y):
         self.rect.move_ip(x, y)
 
     def collide_entity(self, other):
