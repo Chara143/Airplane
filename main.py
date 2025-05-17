@@ -4,117 +4,97 @@ import pygame
 from src.constants import (
     MAX_FPS,
     DISPLAY_SIZE,
-    SHOOT_EVENT,
-    SPAWN_EVENT,
-    HEALTH_BAR_WIDTH,
+    SHOOT_EVENT1,
+    SHOOT_EVENT2,
     PLAYER_HEALTH,
     PLAYER_SPEED,
-    ENEMY_DAMAGE,
-    ENEMY_SPEED,
     BULLET_SPPED,
 )
 from src.player import Player
-from src.bullet import Bullet
-from src.enemy import Enemy
+from src.bullet import Bullet1, Bullet2
 from src.utils import laod_image, get_path
 
 
 def game(display, clock):
-    asteroid_image = laod_image("assets", "images", "asteroid.png", size=[164, 164])
     background_image = laod_image(
         "assets", "images", "background.png", size=DISPLAY_SIZE
     )
-    player_image = laod_image("assets", "images", "player.png", size=[96, 96])
-    shot_image = laod_image("assets", "images", "shot.png", size=[64, 64])
+    player1_image = laod_image("assets", "images", "player.png", size=[96, 96])
+    player2_image = pygame.transform.rotate(laod_image("assets", "images", "player.png", size=[96, 96]), 180)
+    shot_image1 = laod_image("assets", "images", "shot.png", size=[64, 64])
+    shot_image2 = pygame.transform.rotate(laod_image("assets", "images", "shot.png", size=[64, 64]), 180)
 
-    coords = DISPLAY_SIZE[0] / 2, DISPLAY_SIZE[1] - 50
-    player = Player(player_image, coords, PLAYER_SPEED, PLAYER_HEALTH)
+    coords_1 = DISPLAY_SIZE[0] / 2, DISPLAY_SIZE[1] - 50
+    coords_2 = DISPLAY_SIZE[0] / 2, 50
+    player_1 = Player(player1_image, coords_1, PLAYER_SPEED, PLAYER_HEALTH, True)
+    player_2 = Player(player2_image, coords_2, PLAYER_SPEED, PLAYER_HEALTH, False)
     shot_sound = pygame.Sound(get_path("assets", "sounds","shot.wav"))
     death_sound = pygame.Sound(get_path("assets", "sounds","death.wav"))
     explosion_sound = pygame.Sound(get_path("assets", "sounds","explosion.wav"))
     
 
     bullets = list()
-    enemies = list()
-
-    difficulty = 0
-    score = 0
     font = pygame.Font(get_path("assets","fonts","pixel.ttf"),24)
-    pygame.time.set_timer(SPAWN_EVENT, 2000, 1)
 
-    while player.health > 0:
-        difficulty += clock.get_time()
+    while player_1.health > 0:
 
         # Обработка событий
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
 
-            elif event.type == SHOOT_EVENT:
+            elif event.type == SHOOT_EVENT1:
                 shot_sound.play()
-                b = Bullet(shot_image, player.rect.midtop, BULLET_SPPED)
+                b = Bullet1(shot_image1, player_1.rect.midtop, BULLET_SPPED)
+                bullets.append(b)
+            elif event.type == SHOOT_EVENT2:
+                shot_sound.play()
+                b = Bullet2(shot_image2, player_2.rect.midbottom, BULLET_SPPED)
                 bullets.append(b)
 
-            elif event.type == SPAWN_EVENT:
-                millis = max(750, round(2000 - difficulty / 70))
-                pygame.time.set_timer(SPAWN_EVENT, millis, 1)
-
-                new_image = pygame.transform.rotozoom(asteroid_image, randint(0, 360),1 + randint(-10,+10)/100)
-
-                e = Enemy(
-                    round(ENEMY_DAMAGE + difficulty / 7_000),
-                    new_image,
-                    [randint(50, DISPLAY_SIZE[0] - 50), -new_image.height],
-                    ENEMY_SPEED + difficulty / 35_000,
-                )
-                enemies.append(e)
 
         # Обновление игровых объектов
-        player.update()
+        player_1.update()
+        player_2.update()
 
         for i in bullets.copy():
             i.update()
             if not i.alive:
                 bullets.remove(i)
 
-        for i in enemies.copy():
-            i.update()
-            if not i.alive:
-                enemies.remove(i)
-
         for b in bullets:
-            for e in enemies:
-                if b.collide_entity(e):
-                    explosion_sound.play()
-                    b.kill()
-                    e.kill()
-                    score += 1
+            if isinstance(b, Bullet1) and b.collide_entity(player_2):
+                explosion_sound.play()
+                b.kill()
+                player_2.get_damage(10)
+            if isinstance(b, Bullet2) and b.collide_entity(player_1):
+                explosion_sound.play()
+                b.kill()
+                player_1.get_damage(10)
 
-        for e in enemies:
-            if e.collide_entity(player):
-                death_sound.play
-                player.get_damage(e.damage)
-                e.kill()
 
         # Обновление экрана
         display.fill("black")
         display.blit(background_image, (0, 0))
 
-        player.render(display)
+        player_1.render(display)
+        player_2.render(display)
         for u in bullets:
             u.render(display)
-        for u in enemies:
-            u.render(display)
 
-        #                             цвет      x   y        ширина      высота
-        pygame.draw.rect(display, (100, 0, 0), [10, 10, HEALTH_BAR_WIDTH, 20])
-        width = int(player.health / PLAYER_HEALTH * HEALTH_BAR_WIDTH)
-        pygame.draw.rect(display, (255, 0, 0), [10, 10, width, 20])
-        pygame.draw.rect(display, (175, 0, 0), [8, 8, HEALTH_BAR_WIDTH + 4, 24], 2)
+        xy = player_1.rect.midtop
+        width = player_1.rect.width
+        pramoygolnik = pygame.Rect(xy[0] - width/2, xy[1] - 10, width, 10)
+        pramoygolnik2 = pygame.Rect(xy[0] - width/2, xy[1] - 10, int(width * player_1.health / PLAYER_HEALTH), 10)
+        pygame.draw.rect(display, (1, 1, 1), pramoygolnik)
+        pygame.draw.rect(display, (50, 255, 50), pramoygolnik2)
 
-        image_score = font.render(str(score), True, (50, 200, 50))
-        rect_score = image_score.get_rect(midtop = [DISPLAY_SIZE[0]/2, 10])
-        display.blit(image_score, rect_score)
+        xy = player_2.rect.midbottom
+        width = player_2.rect.width
+        pramoygolnik = pygame.Rect(xy[0] - width/2, xy[1] - 10, width, 10)
+        pramoygolnik2 = pygame.Rect(xy[0] - width/2, xy[1] - 10, int(width * player_2.health / PLAYER_HEALTH), 10)
+        pygame.draw.rect(display, (1, 1, 1), pramoygolnik)
+        pygame.draw.rect(display, (255, 50, 50), pramoygolnik2)
 
         pygame.display.update()
         clock.tick(MAX_FPS)
@@ -124,8 +104,14 @@ def show_lose(display, clock):
     running = True
 
     font = pygame.Font(get_path("assets", "fonts", "pixel.ttf"), 64)
-    text = font.render("YOU LOSE!", True, (255, 50, 50))
+    text = font.render("PLAYER 2 WON!", True, (255, 50, 50))
     display.blit(text, text.get_rect(center=[DISPLAY_SIZE[0] / 2, DISPLAY_SIZE[1] / 2]))
+    pygame.display.update()
+
+
+    font1 = pygame.Font(get_path("assets", "fonts", "pixel.ttf"), 64)
+    text1 = font1.render("PLAYER 1 WON!", True, (50, 255, 50))
+    display.blit(text1, text1.get_rect(center=[DISPLAY_SIZE[0] / 2, DISPLAY_SIZE[1] / 2]))
     pygame.display.update()
 
     while running:

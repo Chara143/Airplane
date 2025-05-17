@@ -1,13 +1,14 @@
 import pygame
 
 from .entity import Entity
-from .constants import SHOOT_EVENT, DISPLAY_SIZE
+from .constants import SHOOT_EVENT1, SHOOT_EVENT2, DISPLAY_SIZE
 
 
 class Player(Entity):
-    def __init__(self, image, coords, speed, health):
+    def __init__(self, image, coords, speed, health, button):
         super().__init__(image, coords, speed)
         self.health = health
+        self.button = button
 
     def get_damage(self, value):
         self.health -= value
@@ -18,18 +19,33 @@ class Player(Entity):
 
     def update(self):
         pressed_keys = pygame.key.get_pressed()
-        left = pressed_keys[pygame.K_a] or pressed_keys[pygame.K_LEFT]
-        right = pressed_keys[pygame.K_d] or pressed_keys[pygame.K_RIGHT]
 
-        if left != right:
-            if left:
-                self.move(-self.speed, 0)
-            else:
-                self.move(self.speed, 0)
+        if self.button:
+            left = pressed_keys[pygame.K_a] 
+            right = pressed_keys[pygame.K_d]
 
-        just_pressed_keys = pygame.key.get_just_pressed()
-        if just_pressed_keys[pygame.K_SPACE]:
-            pygame.event.post(pygame.Event(SHOOT_EVENT))
+            if left != right:
+                if left:
+                    self.move(-self.speed, 0)
+                else:
+                    self.move(self.speed, 0)
+
+            just_pressed_keys = pygame.key.get_just_pressed()
+            if just_pressed_keys[pygame.K_SPACE]:
+                pygame.event.post(pygame.Event(SHOOT_EVENT2))
+        else:
+            left = pressed_keys[pygame.K_LEFT] 
+            right = pressed_keys[pygame.K_RIGHT]
+
+            if left != right:
+                if left:
+                    self.move(-self.speed, 0)
+                else:
+                    self.move(self.speed, 0)
+
+            just_pressed_keys = pygame.key.get_just_pressed()
+            if just_pressed_keys[pygame.K_z]:
+                pygame.event.post(pygame.Event(SHOOT_EVENT1))
 
     def move(self, x, y):
         super().move(x, y)

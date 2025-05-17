@@ -6,8 +6,8 @@ MAX_FPS = 60
 DISPLAY_SIZE = 800, 600
 
 # События
-SHOOT_EVENT = pygame.event.custom_type()
-SPAWN_EVENT = pygame.event.custom_type()
+SHOOT_EVENT1 = pygame.event.custom_type()
+SHOOT_EVENT2 = pygame.event.custom_type()
 
 # Переменные игрока
 HEALTH_BAR_WIDTH = 150
